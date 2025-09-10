@@ -61,6 +61,10 @@ class Piece:
             try:
                 coords = x + x2, y + y2
                 square = board[coords[1]][coords[0]]
+                if square and square.colour == self.colour:
+                # pawns handle diagonal captures separately so we only do this for non-pawns
+                    if self.name != 'pawn':
+                        continue
                 if self.name != 'pawn' and (square is None or square and square.colour != self.colour) or \
                         self.name == 'pawn' and ((x2 == 0 and square is None) or (x2, y2) in additional):
                     king = kings[int(self.colour == "black")]
@@ -71,6 +75,8 @@ class Piece:
                     while self.unbounded or self.name == 'pawn' and self.double_move:
                         coords = coords[0] + x2, coords[1] + y2
                         square = board[coords[1]][coords[0]]
+                        if square and square.colour == self.colour:
+                            break
                         if check and board[king[1]][king[0]].in_check(board, king_pos, moved_from=location, moved_to=coords): continue
                         if all(i >= 0 for i in coords) and self.name != 'pawn' and (square is None or square and square.colour != self.colour) or self.name == 'pawn' and (x2 == 0 and square is None):
                             legal_moves.append(coords)
@@ -538,8 +544,9 @@ def main():
                     else:
                         clicked_piece = board[board_coords[1]][board_coords[0]]
                         if clicked_piece and clicked_piece.colour == turn:
+                            check_flag = False if clicked_piece.name == 'king' else True
                             selected_piece, selected_square_coords, selected_board_coords, legal_moves = \
-                                clicked_piece, grid_coords, board_coords, clicked_piece.find_moves(board, board_coords, kings, check)
+                                clicked_piece, grid_coords, board_coords, clicked_piece.find_moves(board, board_coords, kings, check_flag)
                         else:
                             selected_piece, selected_square_coords, legal_moves = None, None, []
                 else: 
